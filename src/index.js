@@ -152,6 +152,8 @@ app.post('/api/extract-quiz', async (req, res) => {
         savedQuiz.status = 'completed';
         await savedQuiz.save();
 
+        console.log(["extractedContent", extractedContent]);
+
         // Send updated data with extracted quiz via socket
         io.emit('quizExtracted', {
           id: savedQuiz._id,
@@ -194,7 +196,7 @@ app.get('/api/data', async (req, res) => {
 // Add a new endpoint to get all extracted quizzes
 app.get('/api/extracted-quizzes', async (req, res) => {
   try {
-    const quizzes = await ExtractedQuiz.find({ status: 'completed' }).sort({ timestamp: -1 }).limit(30);
+    const quizzes = await ExtractedQuiz.find().sort({ timestamp: -1 }).limit(30);
     res.json(quizzes);
   } catch (error) {
     console.error('Error retrieving extracted quizzes:', error);
