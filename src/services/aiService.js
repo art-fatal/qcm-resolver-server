@@ -21,7 +21,8 @@ async function solveQuiz(quizData) {
                 },
                 { 
                     role: "user", 
-                    content: `Nous sommes dans le domaine de la SGBD NOSQL et Lac de données. Veuillez résoudre ce quiz : ${JSON.stringify(quizData.data.generated)}` 
+                    content: `Nous sommes dans le domaine de la SGBD Objet relationnel et SQL3 Oracle. Notament les types de base, les types abstraits, Notion d'identité et les collections dans SQL3 Oracle, Les tables objets, les liens d'associations, Lien d'héritage et le Mapping objet des tables relationnelles SQL2 via les vues, Gestion des objets volumineux et PLSQL étendu aux objets complexes et Mapping Objet relationnel dans Java/JDBC.
+                    Veuillez résoudre ce quiz : ${JSON.stringify(quizData.data.generated)}` 
                 }
             ],
             model: "deepseek-chat",
