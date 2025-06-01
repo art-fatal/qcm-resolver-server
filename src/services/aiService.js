@@ -50,6 +50,49 @@ async function solveQuiz(quizData) {
     }
 }
 
+async function extractQuizFromHtml(html) {
+    try {
+        const openai = new OpenAI({
+            baseURL: process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com',
+            apiKey: process.env.DEEPSEEK_API_KEY
+        });
+
+        const completion = await openai.chat.completions.create({
+            messages: [
+                { 
+                    role: "system", 
+                    content: "Vous êtes un assistant spécialisé dans l'extraction de QCM à partir de pages HTML. Votre tâche est d'analyser le HTML fourni et d'extraire uniquement les questions et réponses du QCM, en les structurant de manière claire et organisée." 
+                },
+                { 
+                    role: "user", 
+                    content: `A noter que s'il n'y a pas de QCM dans le HTML, veuillez répondre "NONE". Veuillez extraire le QCM de ce HTML : ${html}` 
+                }
+            ],
+            model: "deepseek-chat",
+        });
+
+        return completion.choices[0].message.content;
+    } catch (error) {
+        console.error('Error extracting quiz from HTML:', error);
+        
+        // Handle specific error cases
+        if (error.status === 402) {
+            throw new Error('Le service AI est actuellement indisponible en raison d\'un solde insuffisant. Veuillez réessayer plus tard ou contacter le support.');
+        }
+        
+        if (error.status === 401) {
+            throw new Error('L\'authentification du service AI a échoué. Veuillez vérifier vos identifiants API.');
+        }
+        
+        if (error.status === 429) {
+            throw new Error('Limite de taux du service AI dépassée. Veuillez réessayer plus tard.');
+        }
+        
+        throw new Error('Échec de l\'extraction du QCM. Veuillez réessayer plus tard.');
+    }
+}
+
 module.exports = {
-    solveQuiz
+    solveQuiz,
+    extractQuizFromHtml
 }; 
