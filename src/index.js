@@ -4,6 +4,7 @@ const cors = require('cors');
 const http = require('http');
 const socketIo = require('socket.io');
 const Data = require('./models/Data');
+const { solveQuiz } = require('./services/aiService');
 require('dotenv').config();
 
 const app = express();
@@ -36,17 +37,51 @@ io.on('connection', (socket) => {
 // Routes
 app.post('/api/data', async (req, res) => {
   try {
+    console.log(["req.body", req.body.data]);
+    
+    // Return early if req.body.data is an empty object
+    if (Object.keys(req.body.data || {}).length === 0) {
+      return res.status(200).json({ message: 'No data to process' });
+    }
+
     const data = new Data({
       content: req.body
     });
     
     const savedData = await data.save();
-    // Emit the new data to all connected clients
+    
+    // Send data immediately to front
     io.emit('newData', savedData);
     res.status(201).json(savedData);
+    
+    // Process solveQuiz in parallel
+    try {
+      const aiSolution = await solveQuiz(req.body);
+      savedData.aiSolution = aiSolution;
+      await savedData.save();
+      
+      // Send updated data with AI solution
+      io.emit('aiSolution', {
+        id: savedData._id,
+        aiSolution: aiSolution
+      });
+    } catch (aiError) {
+      console.error('Error getting AI solution:', aiError);
+      savedData.aiError = aiError.message;
+      await savedData.save();
+      
+      // Send error to front
+      io.emit('aiError', {
+        id: savedData._id,
+        error: aiError.message
+      });
+    }
   } catch (error) {
     console.error('Error saving data:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      error: error.message,
+      details: 'An error occurred while processing your request'
+    });
   }
 });
 

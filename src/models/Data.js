@@ -5,6 +5,10 @@ const dataSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.Mixed,
     required: true
   },
+  aiSolution: {
+    type: String,
+    required: false
+  },
   timestamp: {
     type: Date,
     default: Date.now
